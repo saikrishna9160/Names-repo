@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Name Registry</title>
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --panel: #ffffff;
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --text: #0f172a;
+        --muted: #475569;
+        --border: #dbe3f0;
+        --danger: #dc2626;
+        --success: #15803d;
+        --success-bg: #dcfce7;
+        --error-bg: #fee2e2;
+        --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background: linear-gradient(145deg, #eff6ff, var(--bg));
+        color: var(--text);
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .page {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 40px 20px 60px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+      }
+
+      .header {
+        padding: 28px 26px;
+        margin-bottom: 24px;
+      }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: clamp(2rem, 4vw, 2.5rem);
+      }
+
+      .subtitle {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .content {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 24px;
+      }
+
+      .panel {
+        padding: 26px;
+      }
+
+      .form-row {
+        display: flex;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      input {
+        flex: 1;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        font-size: 1rem;
+      }
+
+      button {
+        cursor: pointer;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+      }
+
+      .primary-btn {
+        background: var(--primary);
+        color: white;
+        padding: 14px 18px;
+        font-weight: 600;
+      }
+
+      .primary-btn:hover {
+        background: var(--primary-dark);
+      }
+
+      .danger-btn {
+        background: #fef2f2;
+        color: var(--danger);
+        border: 1px solid #fecaca;
+        padding: 8px 12px;
+        font-weight: 600;
+      }
+
+      .danger-btn:hover {
+        background: #fee2e2;
+      }
+
+      .status {
+        margin-top: 18px;
+        min-height: 24px;
+        font-size: 0.95rem;
+      }
+
+      .success {
+        background: var(--success-bg);
+        color: var(--success);
+        border: 1px solid #bbf7d0;
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+
+      .error {
+        background: var(--error-bg);
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+
+      .names-list {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .name-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 16px;
+      }
+
+      .name-item span {
+        font-weight: 500;
+      }
+
+      .empty-state {
+        margin-top: 18px;
+        padding: 18px;
+        border: 1px dashed var(--border);
+        border-radius: 12px;
+        color: var(--muted);
+        text-align: center;
+        background: #f8fafc;
+      }
+
+      .loading {
+        color: var(--muted);
+        font-style: italic;
+      }
+
+      @media (max-width: 720px) {
+        .content {
+          grid-template-columns: 1fr;
+        }
+
+        .form-row {
+          flex-direction: column;
+        }
+
+        .name-item {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="header card">
+        <h1>Name Registry</h1>
+        <p class="subtitle">
+          Store and manage names in a simple registry built for learning container-based deployment on AWS.
+        </p>
+      </header>
+
+      <main class="content">
+        <section class="card panel">
+          <h2>Add a name</h2>
+          <form id="name-form">
+            <div class="form-row">
+              <input id="name-input" type="text" name="name" placeholder="Enter a name" aria-label="Name" />
+              <button class="primary-btn" type="submit" id="submit-btn">Add Name</button>
+            </div>
+          </form>
+          <div id="status" class="status" aria-live="polite"></div>
+        </section>
+
+        <section class="card panel">
+          <h2>Registered names</h2>
+          <div id="list-container">
+            <div class="loading">Loading names...</div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const form = document.getElementById('name-form');
+      const input = document.getElementById('name-input');
+      const statusBox = document.getElementById('status');
+      const listContainer = document.getElementById('list-container');
+      const submitBtn = document.getElementById('submit-btn');
+
+      function setStatus(message, type = 'success') {
+        statusBox.className = `status ${type}`;
+        statusBox.textContent = message;
+      }
+
+      function renderNames(names) {
+        if (!names.length) {
+          listContainer.innerHTML = '<div class="empty-state">No names registered yet.</div>';
+          return;
+        }
+
+        listContainer.innerHTML = `
+          <ul class="names-list">
+            ${names
+              .map(
+                (entry) => `
+                  <li class="name-item">
+                    <span>${entry.name}</span>
+                    <button class="danger-btn" data-id="${entry.id}">Delete</button>
+                  </li>
+                `
+              )
+              .join('')}
+          </ul>
+        `;
+
+        listContainer.querySelectorAll('button[data-id]').forEach((button) => {
+          button.addEventListener('click', async () => {
+            const id = button.dataset.id;
+            try {
+              const response = await fetch(`/api/names/${id}`, { method: 'DELETE' });
+              const data = await response.json();
+
+              if (!response.ok) {
+                throw new Error(data.message || 'Unable to delete name');
+              }
+
+              setStatus('Name deleted successfully.', 'success');
+              await loadNames();
+            } catch (error) {
+              setStatus(error.message, 'error');
+            }
+          });
+        });
+      }
+
+      async function loadNames() {
+        listContainer.innerHTML = '<div class="loading">Loading names...</div>';
+
+        try {
+          const response = await fetch('/api/names');
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.message || 'Failed to load names');
+          }
+
+          renderNames(data);
+        } catch (error) {
+          listContainer.innerHTML = '<div class="empty-state">Unable to load names right now.</div>';
+          setStatus(error.message, 'error');
+        }
+      }
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const name = input.value.trim();
+
+        if (!name) {
+          setStatus('Please enter a valid name.', 'error');
+          input.focus();
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Adding...';
+        setStatus('', 'success');
+
+        try {
+          const response = await fetch('/api/names', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.message || 'Failed to add name');
+          }
+
+          setStatus(`Success! ${data.name} has been added.`, 'success');
+          input.value = '';
+          await loadNames();
+        } catch (error) {
+          setStatus(error.message, 'error');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Add Name';
+        }
+      });
+
+      loadNames();
+    </script>
+  </body>
+</html>

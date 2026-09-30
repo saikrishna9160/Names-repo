@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  name-registry:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: name-registry
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      DATABASE_URL: mysql://app_user:secret@mysql:3306/name_registry
+    depends_on:
+      - mysql
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: name-registry-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootsecret
+      MYSQL_DATABASE: name_registry
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
