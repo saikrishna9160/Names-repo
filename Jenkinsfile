@@ -5,31 +5,30 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                echo 'Source code checkout completed.'
+                echo 'Source code checked out from GitHub'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                echo 'Installing application dependencies...'
+                bat 'npm install'
             }
         }
 
         stage('Run Tests') {
             steps {
-                echo 'Running application tests...'
+                bat 'npm test'
             }
         }
-
     }
 
     post {
         success {
-            echo 'CI pipeline completed successfully.'
+            echo 'CI Pipeline completed successfully!'
         }
 
         failure {
-            echo 'CI pipeline failed.'
+            echo 'CI Pipeline failed!'
         }
     }
 }
