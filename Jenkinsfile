@@ -32,10 +32,28 @@ pipeline {
                 bat 'npm install'
             }
         }
+
         stage('Run Tests') {
-    steps {
-        bat 'npm test'
-    }
-}
+            steps {
+                bat 'npm test'
+            }
+        }
+
+        stage('Start Application') {
+            steps {
+                bat '''
+                    start "Names App" /B cmd /c "npm start > app.log 2>&1"
+                    timeout /t 5 /nobreak
+                '''
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                bat '''
+                    curl -f http://localhost:3000/health
+                '''
+            }
+        }
     }
 }
