@@ -34,10 +34,15 @@ pipeline {
         }
 
         stage('Run Tests') {
-            steps {
-                bat 'npm test'
-            }
+    steps {
+        bat 'npm test'
+    }
+    post {
+        always {
+            junit 'test-results.xml'
         }
+    }
+}
 
         stage('Start Application') {
     steps {
