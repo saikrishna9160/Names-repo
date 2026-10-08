@@ -34,31 +34,46 @@ pipeline {
         }
 
         stage('Run Tests') {
-    steps {
-        bat 'npm test'
-    }
-    post {
-        always {
-            junit 'test-results.xml'
+            steps {
+                bat 'npm test'
+            }
+            post {
+                always {
+                    junit 'test-results.xml'
+                }
+            }
         }
-    }
-}
 
         stage('Start Application') {
-    steps {
-        bat '''
-            start "Names App" /B cmd /c "npm start > app.log 2>&1"
-            ping 127.0.0.1 -n 6 > nul
-        '''
-    }
-}
+            steps {
+                bat '''
+                    start "Names App" /B cmd /c "npm start > app.log 2>&1"
+                    ping 127.0.0.1 -n 6 > nul
+                '''
+            }
+        }
 
         stage('Health Check') {
             steps {
                 bat '''
+                    echo ===== APPLICATION HEALTH CHECK =====
                     curl -f http://localhost:3000/health
                 '''
             }
+        }
+    }
+
+    post {
+        always {
+            echo '===== PIPELINE COMPLETED ====='
+        }
+
+        success {
+            echo '===== CI PIPELINE SUCCESS ====='
+        }
+
+        failure {
+            echo '===== CI PIPELINE FAILED ====='
         }
     }
 }
