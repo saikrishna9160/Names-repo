@@ -4,10 +4,10 @@
   "description": "Name Registry web application for AWS deployment learning",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "test": "node --test"
-  },
+  "start": "node src/server.js",
+  "dev": "node --watch src/server.js",
+  "test": "node --test --test-reporter=junit --test-reporter-destination=test-results.xml"
+}
   "engines": {
     "node": ">=18"
   },
