@@ -40,13 +40,13 @@ pipeline {
         }
 
         stage('Start Application') {
-            steps {
-                bat '''
-                    start "Names App" /B cmd /c "npm start > app.log 2>&1"
-                    timeout /t 5 /nobreak
-                '''
-            }
-        }
+    steps {
+        bat '''
+            start "Names App" /B cmd /c "npm start > app.log 2>&1"
+            ping 127.0.0.1 -n 6 > nul
+        '''
+    }
+}
 
         stage('Health Check') {
             steps {
