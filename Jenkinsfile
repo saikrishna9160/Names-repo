@@ -14,6 +14,23 @@ pipeline {
                 bat 'npm install'
             }
         }
+        stage('Check Node.js Environment') {
+    steps {
+        bat '''
+            echo ===== NODE VERSION =====
+            node --version
+
+            echo ===== NPM VERSION =====
+            npm --version
+
+            echo ===== NODE PATH =====
+            where node
+
+            echo ===== NPM PATH =====
+            where npm
+        '''
+    }
+}
 
         stage('Run Tests') {
             steps {
